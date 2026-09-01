@@ -1,0 +1,287 @@
+/* ============================================================
+   Gestor de hojas de anotaciones — Chalkboard / Reveal.js / Quarto
+   ------------------------------------------------------------
+   Botón flotante + panel para guardar, nombrar, listar y volver
+   a cargar distintos conjuntos de trazos sobre la MISMA presentación.
+   Construido por assets/hojas-anotaciones.js.
+   ============================================================ */
+
+:root {
+  --ha-tam: 54px;
+  --ha-margen: 26px;
+  --ha-fondo: rgba(255, 255, 255, 0.82);
+  --ha-borde: rgba(15, 23, 42, 0.10);
+  --ha-texto: #1f2937;
+  --ha-tenue: #6b7280;
+  --ha-acento: #0d9488;                 /* distinto del azul del botón de notas */
+  --ha-acento-suave: rgba(13, 148, 136, 0.12);
+  --ha-peligro: #dc2626;
+  --ha-sombra: 0 8px 26px rgba(15, 23, 42, 0.16), 0 1px 3px rgba(15, 23, 42, 0.10);
+  --ha-sombra-panel: 0 20px 50px rgba(15, 23, 42, 0.28);
+}
+
+/* ---------- Botón flotante (esquina inferior derecha) ---------- */
+.hojas-boton {
+  position: fixed;
+  right: var(--ha-margen);
+  bottom: var(--ha-margen);
+  z-index: 61;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--ha-tam);
+  height: var(--ha-tam);
+  padding: 0;
+  margin: 0;
+
+  background: var(--ha-fondo);
+  border: 1px solid var(--ha-borde);
+  border-radius: 999px;
+  box-shadow: var(--ha-sombra);
+  color: var(--ha-texto);
+  cursor: pointer;
+  -webkit-backdrop-filter: blur(14px) saturate(1.6);
+  backdrop-filter: blur(14px) saturate(1.6);
+  transition: box-shadow .25s ease, background-color .25s ease, transform .2s ease;
+}
+
+.hojas-boton:hover { box-shadow: 0 10px 32px rgba(15,23,42,.22); }
+.hojas-boton:active { transform: scale(.94); }
+.hojas-boton:focus-visible { outline: 3px solid var(--ha-acento); outline-offset: 3px; }
+
+.hojas-boton svg { width: 22px; height: 22px; }
+
+.hojas-boton.abierto {
+  background: var(--ha-acento);
+  border-color: transparent;
+  color: #fff;
+}
+
+/* Punto: hay una hoja cargada con cambios sin guardar */
+.hojas-boton .ha-punto {
+  position: absolute;
+  top: 9px;
+  right: 9px;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--ha-peligro);
+  box-shadow: 0 0 0 2.5px var(--ha-fondo);
+  opacity: 0;
+  transform: scale(.4);
+  transition: opacity .2s ease, transform .2s cubic-bezier(.34,1.56,.64,1);
+}
+.hojas-boton.sucio .ha-punto { opacity: 1; transform: scale(1); }
+
+/* ---------- Panel ---------- */
+.hojas-panel {
+  position: fixed;
+  right: var(--ha-margen);
+  bottom: calc(var(--ha-margen) + var(--ha-tam) + 12px);
+  z-index: 61;
+  width: min(340px, calc(100vw - 2 * var(--ha-margen)));
+  max-height: min(520px, calc(100vh - 2 * var(--ha-margen) - var(--ha-tam)));
+
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+
+  background: var(--ha-fondo);
+  border: 1px solid var(--ha-borde);
+  border-radius: 16px;
+  box-shadow: var(--ha-sombra-panel);
+  -webkit-backdrop-filter: blur(18px) saturate(1.6);
+  backdrop-filter: blur(18px) saturate(1.6);
+
+  font-family: inherit;
+  color: var(--ha-texto);
+
+  opacity: 0;
+  transform: translateY(10px) scale(.97);
+  pointer-events: none;
+  transition: opacity .2s ease, transform .22s cubic-bezier(.22,1,.36,1);
+}
+
+.hojas-panel.visible {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+  pointer-events: auto;
+}
+
+.ha-cabecera {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px 10px;
+  font-size: 14px;
+  font-weight: 650;
+  border-bottom: 1px solid var(--ha-borde);
+}
+
+.ha-cerrar {
+  border: none;
+  background: transparent;
+  color: var(--ha-tenue);
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+  padding: 2px 4px;
+}
+.ha-cerrar:hover { color: var(--ha-texto); }
+
+/* ---------- Guardar ---------- */
+.ha-guardar {
+  display: flex;
+  gap: 8px;
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--ha-borde);
+}
+
+.ha-guardar input[type="text"] {
+  flex: 1;
+  min-width: 0;
+  padding: 8px 10px;
+  font-size: 13.5px;
+  font-family: inherit;
+  color: var(--ha-texto);
+  background: rgba(255,255,255,0.7);
+  border: 1px solid var(--ha-borde);
+  border-radius: 8px;
+}
+.ha-guardar input[type="text"]:focus {
+  outline: none;
+  border-color: var(--ha-acento);
+  box-shadow: 0 0 0 3px var(--ha-acento-suave);
+}
+
+.ha-btn {
+  flex: 0 0 auto;
+  padding: 8px 12px;
+  font-size: 13px;
+  font-weight: 600;
+  font-family: inherit;
+  color: #fff;
+  background: var(--ha-acento);
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: filter .15s ease;
+}
+.ha-btn:hover { filter: brightness(1.08); }
+.ha-btn:active { filter: brightness(.95); }
+
+/* ---------- Lista ---------- */
+.ha-lista {
+  overflow-y: auto;
+  padding: 6px 8px;
+}
+
+.ha-vacio {
+  padding: 18px 12px;
+  font-size: 13px;
+  color: var(--ha-tenue);
+  text-align: center;
+}
+
+.ha-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 8px;
+  border-radius: 10px;
+}
+.ha-item:hover { background: rgba(15, 23, 42, 0.05); }
+
+.ha-item.activa {
+  background: var(--ha-acento-suave);
+}
+
+.ha-info {
+  flex: 1;
+  min-width: 0;
+  cursor: pointer;
+}
+
+.ha-nombre {
+  font-size: 13.5px;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ha-fecha {
+  font-size: 11.5px;
+  color: var(--ha-tenue);
+}
+
+.ha-acciones {
+  display: flex;
+  gap: 2px;
+  flex: 0 0 auto;
+}
+
+.ha-icono-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border: none;
+  background: transparent;
+  color: var(--ha-tenue);
+  border-radius: 7px;
+  cursor: pointer;
+}
+.ha-icono-btn:hover { background: rgba(15,23,42,0.08); color: var(--ha-texto); }
+.ha-icono-btn.ha-eliminar:hover { color: var(--ha-peligro); background: rgba(220,38,38,0.10); }
+.ha-icono-btn svg { width: 15px; height: 15px; }
+
+/* ---------- Pie ---------- */
+.ha-pie {
+  padding: 10px 14px 12px;
+  border-top: 1px solid var(--ha-borde);
+}
+
+.ha-blanco {
+  width: 100%;
+  padding: 8px 10px;
+  font-size: 13px;
+  font-weight: 600;
+  font-family: inherit;
+  color: var(--ha-texto);
+  background: transparent;
+  border: 1px dashed var(--ha-borde);
+  border-radius: 8px;
+  cursor: pointer;
+}
+.ha-blanco:hover { border-color: var(--ha-acento); color: var(--ha-acento); }
+
+/* ---------- Pantallas pequeñas ---------- */
+@media (max-width: 700px) {
+  :root { --ha-tam: 48px; --ha-margen: 14px; }
+}
+
+/* ---------- Tema oscuro de Reveal ---------- */
+.reveal.has-dark-background ~ .hojas-boton,
+.reveal.has-dark-background ~ .hojas-panel,
+body.quarto-dark .hojas-boton,
+body.quarto-dark .hojas-panel {
+  --ha-fondo: rgba(30, 41, 59, 0.9);
+  --ha-borde: rgba(255, 255, 255, 0.14);
+  --ha-texto: #e5e7eb;
+  --ha-tenue: #9ca3af;
+}
+body.quarto-dark .ha-guardar input[type="text"] { background: rgba(15, 23, 42, 0.5); color: #e5e7eb; }
+body.quarto-dark .ha-item:hover { background: rgba(255,255,255,0.06); }
+
+/* ---------- Nunca en PDF / impresión ---------- */
+@media print { .hojas-boton, .hojas-panel { display: none !important; } }
+.print-pdf .hojas-boton, .print-pdf .hojas-panel,
+html.print-pdf .hojas-boton, html.print-pdf .hojas-panel { display: none !important; }
+
+@media (prefers-reduced-motion: reduce) {
+  .hojas-boton, .hojas-panel, .ha-punto { transition: none !important; }
+}

@@ -1,144 +1,164 @@
 # Presentaciones anotadas — Quarto + Reveal.js Chalkboard
 
-Flujo para dictar clase sobre una presentación limpia, anotarla en vivo y
-publicar en GitHub Pages una versión donde el alumno revela las anotaciones
-con un botón.
+Una sola presentación (`presentacion_maestra.qmd`) en la que siempre puedes
+dibujar, y donde cada sesión de anotaciones se guarda con nombre en el propio
+navegador para poder volver a ella y seguir editándola.
+
+## Lo que necesitas saber, en una frase
+
+Dibujas libremente sobre `docs/presentacion_maestra.html`, le pones nombre a
+lo que dibujaste con el botón de la carpeta (esquina inferior derecha), y
+queda guardado en tu navegador — puedes cerrar la pestaña, volver otro día, y
+cargarlo de nuevo para seguir editando. Nada de scripts ni de `git` para el
+día a día; eso solo hace falta si quieres publicar un cambio en GitHub Pages.
 
 ## Estructura
 
 ```
 Presentacion_Quarto_GitHub/
-├── _quarto.yml                 proyecto: output-dir = docs
-├── presentacion_maestra.qmd    la que dictas en clase (sin notas)
-├── presentacion_anotada.qmd    GENERADA por el script, no la edites
+├── _quarto.yml                    proyecto: output-dir = docs
+├── presentacion_maestra.qmd       la presentación (única, siempre editable)
 ├── assets/
-│   ├── boton-notas.css         estilo del botón flotante
-│   └── boton-notas.js          lógica del botón (API de Chalkboard)
-├── anotaciones/
-│   └── sesion-01.json          los trazos de cada clase (SÍ va a git)
-├── scripts/
-│   └── generar_anotada.py      automatiza el post-proceso
-├── descargas/                  bandeja temporal, ignorada por git
-├── docs/                       salida que publica GitHub Pages
+│   ├── boton-notas.css / .js      botón de la pizarra (modo lápiz on/off)
+│   └── hojas-anotaciones.css/.js  gestor de hojas guardadas con nombre
+├── docs/                          salida que publica GitHub Pages
+│
+│   --- lo siguiente es un flujo aparte, opcional (ver más abajo) ---
+├── presentacion_anotada.qmd       snapshot de solo lectura, GENERADO
+├── anotaciones/                   JSON de cada snapshot publicado
+├── scripts/generar_anotada.py     arma un snapshot de solo lectura
+├── descargas/                     bandeja temporal, ignorada por git
 └── .gitignore
 ```
 
-## Ciclo de trabajo
+## Uso diario — dar clase y guardar tus anotaciones
 
-**1 · Antes de clase**
-
-```bash
-quarto render presentacion_maestra.qmd
-```
-
-**2 · Durante la clase**
-
-Abre `docs/presentacion_maestra.html`. Atajos:
-
-| Tecla | Acción |
-|-------|--------|
-| `C` | lienzo de notas: dibujar **sobre** la diapositiva |
-| `B` | pizarra opaca en blanco |
-| `A` | botón de anotaciones (equivale a hacerle clic) |
-| `X` / `Y` | color siguiente / anterior |
-| `SUPR` | borrar los trazos de la diapositiva |
-| `D` | **descargar `chalkboard.json`** |
-
-**3 · Al terminar**
-
-Pulsa `D`. El navegador guarda `chalkboard.json` en Descargas.
-
-**4 · Post-proceso (un solo comando)**
+**1 · Abre la presentación**
 
 ```bash
-python scripts/generar_anotada.py ~/Downloads/chalkboard.json --sesion 02
+quarto preview presentacion_maestra.qmd
 ```
 
-El script valida el JSON, lo archiva en `anotaciones/sesion-02.json`, genera
-`presentacion_anotada.qmd` con el YAML correcto y ejecuta `quarto render`.
+(o, si ya está renderizada, abre `docs/presentacion_maestra.html` sirviéndola
+por HTTP — ver la nota al final sobre por qué no vale el doble clic).
 
-**5 · Publicar**
+**2 · Dibuja**
 
-```bash
-git add docs anotaciones presentacion_anotada.qmd
-git commit -m "Anotaciones de clase: sesion-02"
-git push
-```
+El lápiz del pandel inferior izquierdo (o la tecla `C`) activa el modo
+dibujo sobre la diapositiva; `B` abre una pizarra en blanco. Mientras
+dibujas, el botón de la carpeta (abajo a la derecha) muestra un punto rojo
+avisando que hay trazos sin guardar.
 
-## Puesta en marcha de GitHub Pages
+**3 · Guarda con nombre**
+
+Clic en el botón de la carpeta → escribe un nombre (o deja el sugerido,
+p. ej. "Sesión 03") → **Guardar anotación**. Queda guardado en tu navegador,
+en esta misma máquina.
+
+**4 · Vuelve a una hoja anterior**
+
+En ese mismo panel verás la lista de hojas guardadas. Clic en **Cargar**
+sobre cualquiera: la página se recarga con esos trazos ya puestos, listos
+para seguir dibujando encima. Guardar de nuevo con el mismo nombre la
+actualiza (te pregunta antes de reemplazarla).
+
+**5 · Empezar de cero**
+
+**+ Hoja en blanco**, al pie del panel, limpia el lienzo sin tocar ninguna
+hoja guardada.
+
+### Un límite importante que debes conocer
+
+Las hojas guardadas viven en el **almacenamiento del navegador de esa
+computadora** (`localStorage`), no en GitHub ni en la nube. Si:
+
+- limpias el historial/datos de navegación de ese navegador, o
+- presentas desde otra computadora,
+
+no verás las hojas que guardaste antes. Para protegerlas, cada hoja tiene un
+botón de **descarga** (⬇) en la lista: te da un `.json` que puedes guardar
+donde quieras — es el mismo formato que produce la tecla `D` de Chalkboard.
+
+## Puesta en marcha de GitHub Pages (una sola vez)
 
 1. `git init && git add . && git commit -m "Estructura inicial"`
-2. Crea el repositorio en GitHub y haz `git push -u origin main`.
+2. Crea el repositorio vacío en GitHub y haz `git push -u origin main`.
 3. **Settings → Pages → Source: Deploy from a branch → `main` / `/docs`**.
 4. La presentación queda en
-   `https://<usuario>.github.io/<repo>/presentacion_anotada.html`.
+   `https://<usuario>.github.io/<repo>/presentacion_maestra.html`.
 
 `docs/.nojekyll` ya está creado: impide que Jekyll descarte carpetas cuyo
-nombre empieza por `_`.
+nombre empieza por `_`. Publicar solo hace falta cuando cambias el
+**contenido** de las diapositivas (texto, fórmulas) — las anotaciones que
+guardas con el botón de la carpeta no requieren volver a publicar, viven en
+tu navegador.
 
-## Siete cosas que conviene saber
+## Ocho cosas que conviene saber
 
 **1 · `embed-resources` tiene que ser `false`.**
-El plugin declara `self-contained: false` en su `plugin.yml` y carga el JSON
-por `XMLHttpRequest` en tiempo de ejecución. Con `embed-resources: true` las
-anotaciones no cargan nunca.
+El plugin declara `self-contained: false` en su `plugin.yml`. Con
+`embed-resources: true` el JSON y el guardado en sesión dejan de funcionar.
 
-**2 · Quarto copia el JSON solo.**
-Al detectar `chalkboard.src` lo registra como recurso y lo copia a `docs/`.
-Por eso `anotaciones/` **no** puede estar en `.gitignore`.
+**2 · `chalkboard.storage` es la clave de todo el gestor de hojas.**
+Chalkboard ya sabe autoguardar su dibujo en `sessionStorage` bajo esa clave
+(con ~1s de espera tras cada trazo) y recuperarlo al recargar. El botón
+"Cargar" de una hoja no hace magia: escribe el JSON de esa hoja en esa misma
+clave y recarga la página — el plugin la recoge solo. Por eso la clave en el
+YAML (`chalkboard.storage: "amawa-hoja-activa"`) y `CLAVE_ACTIVA` en
+`assets/hojas-anotaciones.js` **deben coincidir exactamente**.
 
-**3 · Nunca ignores `*_files/` sin ancla.**
+**3 · Nunca ignores `*_files/` sin ancla en el `.gitignore`.**
 `docs/presentacion_*_files/` contiene reveal.js, MathJax y el propio plugin.
 El `.gitignore` usa `/*_files/` (con barra inicial) para ignorar solo la raíz.
 
 **4 · Las anotaciones están atadas al fragmento.**
-El plugin empareja por `h`, `v` **y `f`** (índice de fragmento, `plugin.js`
-línea 691). Si anotas con la lista incremental a medio revelar, esos trazos
-solo reaparecen en ese mismo estado. Para notas que deban verse siempre,
-anota antes de revelar fragmentos.
+El plugin empareja por `h`, `v` **y `f`** (índice de fragmento). Si dibujas
+con una lista incremental a medio revelar, esos trazos solo reaparecen en ese
+mismo estado. Para notas que deban verse siempre, dibuja antes de revelar
+fragmentos.
 
-**5 · `toggleNotesCanvas()` no sirve para mostrar/ocultar notas guardadas.**
-El lienzo `#notescanvas` se crea siempre visible; esa función solo alterna el
-*modo de dibujo*, y además no hace nada cuando `read-only: true`. Por eso
-`boton-notas.js` controla la opacidad del lienzo y reserva la API oficial
-`toggleChalkboard()` para los trazos hechos en la pizarra opaca.
+**5 · Cada archivo `.html` tiene su propia librería de hojas.**
+`hojas-anotaciones.js` namespacea `localStorage` por `location.pathname`, así
+que las hojas de `presentacion_maestra.html` nunca se mezclan con las de
+ningún otro archivo que abras en el mismo navegador.
 
-**6 · `width` y `height` deben coincidir** entre maestra y anotada. El JSON
-guarda las dimensiones con las que se dibujó y reescala a partir de ellas.
-El script avisa si detecta un desajuste.
+**6 · El diálogo de confirmación es nativo del navegador.**
+"Cargar", "Eliminar" y "Hoja en blanco" usan `confirm()` para no perder
+trabajo sin querer. Si automatizas pruebas con un navegador headless, esos
+diálogos suelen autocancelarse — es una limitación del entorno de pruebas,
+no del código.
 
-**7 · Ábrela siempre por HTTP, nunca con doble clic.**
-Con `file://` el navegador bloquea la lectura del JSON. Usa
-`quarto preview`, `python -m http.server` o GitHub Pages.
+**7 · `width` y `height` no deben cambiar** una vez que empieces a guardar
+hojas. El JSON guarda las dimensiones con las que se dibujó y reescala los
+trazos a partir de ellas.
 
-## El botón: cómo se ajusta
+**8 · Ábrela siempre por HTTP, nunca con doble clic.**
+Con `file://` el navegador bloquea `sessionStorage`/`localStorage` en
+algunos casos y el plugin no puede leer nada. Usa `quarto preview`,
+`python -m http.server` o GitHub Pages.
 
-Todo el comportamiento está en el objeto `CFG` al inicio de
-`assets/boton-notas.js`:
+## Flujo opcional: publicar un snapshot de solo lectura
 
-```js
-const CFG = {
-  visiblesAlEntrar: false,    // true = las notas se ven al llegar al slide
-  ocultarSiNoHayNotas: false, // true = el botón desaparece si no hay notas
-  tecla: "A",
-  codigoTecla: 65,
-};
-```
+Si alguna vez quieres compartir una versión donde el público solo puede
+**ver** tus anotaciones (sin poder dibujar ni tocar nada), existe un segundo
+flujo, independiente del de arriba:
 
-Los colores y la posición están en las variables CSS de
-`assets/boton-notas.css` (`--bn-acento`, `--bn-margen`, `--bn-tam`…).
+1. En `presentacion_maestra.html`, descarga una hoja con el botón ⬇ (o la
+   tecla `D`) — te da un `.json`.
+2. Corre el script:
+   ```bash
+   python scripts/generar_anotada.py ruta/al/archivo.json --sesion 02
+   ```
+   Esto genera `presentacion_anotada.qmd` (con `read-only: true`, sin el
+   gestor de hojas) y lo renderiza.
+3. Publica:
+   ```bash
+   git add docs anotaciones presentacion_anotada.qmd
+   git commit -m "Publica anotaciones: sesion-02"
+   git push
+   ```
 
-El botón se detecta a sí mismo en dos modos:
-
-- **Sin `chalkboard.src`** (maestra): entra y sale del modo lápiz.
-- **Con `chalkboard.src`** (anotada): lee el JSON, marca con un punto ámbar
-  las diapositivas que tienen trazos y muestra u oculta las anotaciones.
-
-## Volver a probar sin dar clase
-
-`descargas/chalkboard.json` es un archivo de prueba con trazos en las dos
-diapositivas. Para rehacer el ciclo completo:
-
-```bash
-python scripts/generar_anotada.py descargas/chalkboard.json --sesion 01
-```
+El botón flotante de esa versión publicada (azul, `assets/boton-notas.js`)
+muestra u oculta esas anotaciones ya grabadas — lo que en versiones
+anteriores de este proyecto era el único mecanismo. Sigue funcionando igual,
+pero ya no es necesario para tu flujo del día a día.

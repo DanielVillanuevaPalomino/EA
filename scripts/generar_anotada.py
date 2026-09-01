@@ -237,11 +237,18 @@ def construir_qmd_anotado(
 
     ancho, alto = leer_dimensiones(yaml_lineas)
 
-    # El maestro manda en todo salvo en estas tres claves.
+    # El maestro manda en todo salvo en estas claves.
     opciones.pop("src", None)
     opciones["src"] = ruta_json_relativa
     opciones["read-only"] = "true"   # nadie puede alterar los trazos publicados
     opciones["buttons"] = "false"    # fuera los iconos nativos: manda nuestro botón
+    # El maestro usa `storage` (sessionStorage) para el gestor de hojas
+    # en vivo. Si lo heredara la anotada, y alguien navega de una a otra
+    # en la MISMA pestaña, el plugin leería ese borrador a medio dibujar
+    # en vez del JSON publicado (sessionStorage se comparte entre páginas
+    # del mismo origen y misma pestaña). La anotada siempre debe cargar
+    # estrictamente desde `src`.
+    opciones.pop("storage", None)
     # Estas dos van en camelCase A PROPOSITO: no están en la lista de
     # opciones que Quarto convierte de kebab a camel, así que se pasan
     # tal cual al plugin. Quitan la paleta de colores y el asa lateral,
@@ -260,6 +267,12 @@ def construir_qmd_anotado(
         bloque.append(f"{sangria_hija}{k}: {opciones[k]}\n")
 
     nuevo_yaml = yaml_lineas[:inicio] + bloque + yaml_lineas[fin:]
+
+    # El gestor de "hojas de anotaciones" es para presentar en vivo y
+    # necesita `chalkboard.storage`, que la anotada no tiene (a propósito,
+    # ver arriba). Si se colara su <link>/<script>, el botón aparecería
+    # pero "Cargar" no haría nada: mejor quitarlo de la versión publicada.
+    nuevo_yaml = [ln for ln in nuevo_yaml if "hojas-anotaciones" not in ln]
 
     if retitular_doc:
         nuevo_yaml = retitular(nuevo_yaml)

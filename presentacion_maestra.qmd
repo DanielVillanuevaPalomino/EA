@@ -30,11 +30,12 @@ format:
     include-in-header:
       - text: |
           <link rel="stylesheet" href="assets/boton-notas.css">
+          <link rel="stylesheet" href="assets/hojas-anotaciones.css">
     include-after-body:
       - text: |
           <script src="assets/boton-notas.js"></script>
+          <script src="assets/hojas-anotaciones.js"></script>
 
-    # --- CHALKBOARD:INICIO (bloque gestionado por scripts/generar_anotada.py) ---
     chalkboard:
       theme: whiteboard
       boardmarker-width: 3
@@ -42,7 +43,11 @@ format:
       transition: 500
       read-only: false
       buttons: true
-    # --- CHALKBOARD:FIN ---
+      # Clave de sessionStorage donde Chalkboard autoguarda cada trazo
+      # (con ~1s de espera). DEBE coincidir con CLAVE_ACTIVA en
+      # assets/hojas-anotaciones.js: es cómo el botón "Cargar" de una
+      # hoja guardada consigue que el plugin la recoja al recargar.
+      storage: "amawa-hoja-activa"
 ---
 
 ## Distribución normal {#normal}
