@@ -6,6 +6,17 @@
    Construido por assets/hojas-anotaciones.js.
    ============================================================ */
 
+/* ---------- Un solo modo de anotar ----------
+   Quarto agrega DOS iconos nativos abajo a la izquierda: "Toggle
+   Chalkboard" (pizarra opaca en blanco) y "Toggle Notes Canvas"
+   (dibujar sobre la propia diapositiva). Dos formas de "entrar en
+   modo anotación" confunden más de lo que ayudan, así que dejamos
+   sola la de dibujar sobre el slide (el lápiz sigue accesible con
+   la tecla B para quien lo necesite; solo se oculta el botón). */
+.slide-chalkboard-buttons span[title="Toggle Chalkboard (b)"] {
+  display: none !important;
+}
+
 :root {
   --ha-tam: 54px;
   --ha-margen: 26px;
@@ -56,6 +67,13 @@
   background: var(--ha-acento);
   border-color: transparent;
   color: #fff;
+}
+
+/* Viendo la diapositiva "original" (trazos ocultos, sin borrar) */
+.hojas-boton.viendo-original {
+  border-style: dashed;
+  border-color: var(--ha-tenue);
+  color: var(--ha-tenue);
 }
 
 /* Punto: hay una hoja cargada con cambios sin guardar */
@@ -129,6 +147,47 @@
   padding: 2px 4px;
 }
 .ha-cerrar:hover { color: var(--ha-texto); }
+
+/* ---------- Ver original (oculta trazos sin borrarlos) ---------- */
+.ha-original {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 11px 14px;
+  border-bottom: 1px solid var(--ha-borde);
+  font-size: 13px;
+}
+
+.ha-original-texto { color: var(--ha-texto); }
+.ha-original-sub { display: block; font-size: 11.5px; color: var(--ha-tenue); }
+
+.ha-switch {
+  position: relative;
+  flex: 0 0 auto;
+  width: 40px;
+  height: 23px;
+  border: none;
+  border-radius: 999px;
+  background: rgba(15, 23, 42, 0.18);
+  cursor: pointer;
+  transition: background-color .18s ease;
+}
+.ha-switch::before {
+  content: "";
+  position: absolute;
+  top: 2.5px;
+  left: 2.5px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 1px 3px rgba(15,23,42,.35);
+  transition: transform .18s cubic-bezier(.22,1,.36,1);
+}
+.ha-switch.activo { background: var(--ha-acento); }
+.ha-switch.activo::before { transform: translateX(17px); }
+.ha-switch:focus-visible { outline: 2px solid var(--ha-acento); outline-offset: 2px; }
 
 /* ---------- Guardar ---------- */
 .ha-guardar {
@@ -205,11 +264,30 @@
 }
 
 .ha-nombre {
+  display: flex;
+  align-items: center;
   font-size: 13.5px;
   font-weight: 600;
+}
+
+.ha-nombre-texto {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  min-width: 0;
+}
+
+.ha-badge {
+  flex: 0 0 auto;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: .02em;
+  text-transform: uppercase;
+  color: var(--ha-acento);
+  background: var(--ha-acento-suave);
+  border-radius: 999px;
+  padding: 2px 7px;
+  margin-left: 6px;
 }
 
 .ha-fecha {

@@ -19,8 +19,7 @@ Presentacion_Quarto_GitHub/
 ├── _quarto.yml                    proyecto: output-dir = docs
 ├── presentacion_maestra.qmd       la presentación (única, siempre editable)
 ├── assets/
-│   ├── boton-notas.css / .js      botón de la pizarra (modo lápiz on/off)
-│   └── hojas-anotaciones.css/.js  gestor de hojas guardadas con nombre
+│   └── hojas-anotaciones.css/.js  botón "Hojas": guardar, cargar, ver original
 ├── docs/                          salida que publica GitHub Pages
 │
 │   --- lo siguiente es un flujo aparte, opcional (ver más abajo) ---
@@ -44,10 +43,9 @@ por HTTP — ver la nota al final sobre por qué no vale el doble clic).
 
 **2 · Dibuja**
 
-El lápiz del pandel inferior izquierdo (o la tecla `C`) activa el modo
-dibujo sobre la diapositiva; `B` abre una pizarra en blanco. Mientras
-dibujas, el botón de la carpeta (abajo a la derecha) muestra un punto rojo
-avisando que hay trazos sin guardar.
+Hay **un solo** icono para entrar en modo anotación: el lápiz abajo a la
+izquierda (o la tecla `C`). Mientras dibujas, el botón de la carpeta (abajo
+a la derecha) muestra un punto rojo avisando que hay trazos sin guardar.
 
 **3 · Guarda con nombre**
 
@@ -62,15 +60,32 @@ sobre cualquiera: la página se recarga con esos trazos ya puestos, listos
 para seguir dibujando encima. Guardar de nuevo con el mismo nombre la
 actualiza (te pregunta antes de reemplazarla).
 
-**5 · Empezar de cero**
+**5 · Ver la diapositiva original (sin anotaciones)**
+
+Arriba del panel hay un interruptor **"Mostrar anotaciones"**. Apágalo para
+ver la diapositiva tal como está en el `.qmd`, sin ningún trazo — nada se
+borra, es solo una vista. Vuelve a encenderlo (o toca el lápiz para seguir
+dibujando) y tus anotaciones reaparecen exactamente igual.
+
+**6 · Empezar de cero**
 
 **+ Hoja en blanco**, al pie del panel, limpia el lienzo sin tocar ninguna
-hoja guardada.
+hoja guardada. A diferencia del interruptor de arriba, esto sí borra —
+pide confirmación antes de hacerlo.
+
+### Si dibujas y cierras sin guardar
+
+No pasa nada: cada ~8 segundos (y también justo antes de cerrar la pestaña)
+tu trabajo se resguarda solo en una hoja especial llamada
+**"◐ Borrador automático"**, marcada "sin nombre" en la lista. Ábrela para
+recuperarlo, o dale un nombre propio con **Guardar anotación** — al hacerlo,
+el borrador se reemplaza por tu hoja con nombre.
 
 ### Un límite importante que debes conocer
 
-Las hojas guardadas viven en el **almacenamiento del navegador de esa
-computadora** (`localStorage`), no en GitHub ni en la nube. Si:
+Las hojas guardadas (con nombre o el borrador automático) viven en el
+**almacenamiento del navegador de esa computadora** (`localStorage`), no en
+GitHub ni en la nube. Si:
 
 - limpias el historial/datos de navegación de ese navegador, o
 - presentas desde otra computadora,
@@ -93,7 +108,7 @@ nombre empieza por `_`. Publicar solo hace falta cuando cambias el
 guardas con el botón de la carpeta no requieren volver a publicar, viven en
 tu navegador.
 
-## Ocho cosas que conviene saber
+## Nueve cosas que conviene saber
 
 **1 · `embed-resources` tiene que ser `false`.**
 El plugin declara `self-contained: false` en su `plugin.yml`. Con
@@ -136,6 +151,15 @@ trazos a partir de ellas.
 Con `file://` el navegador bloquea `sessionStorage`/`localStorage` en
 algunos casos y el plugin no puede leer nada. Usa `quarto preview`,
 `python -m http.server` o GitHub Pages.
+
+**9 · El plugin trae DOS lienzos; ocultamos uno.**
+Chalkboard soporta dibujar sobre el slide (`notescanvas`) y, aparte, abrir
+una pizarra opaca en blanco (`chalkboard`, tecla `B`). Tener dos iconos
+nativos para "entrar en modo anotación" confundía, así que
+`assets/hojas-anotaciones.css` oculta con CSS el botón de la pizarra
+opaca (`span[title="Toggle Chalkboard (b)"]`) y deja solo el de dibujar
+sobre el slide. La tecla `B` sigue funcionando si alguna vez la necesitas;
+solo el botón desaparece.
 
 ## Flujo opcional: publicar un snapshot de solo lectura
 

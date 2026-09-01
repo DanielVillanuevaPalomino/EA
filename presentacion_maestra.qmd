@@ -29,11 +29,9 @@ format:
 
     include-in-header:
       - text: |
-          <link rel="stylesheet" href="assets/boton-notas.css">
           <link rel="stylesheet" href="assets/hojas-anotaciones.css">
     include-after-body:
       - text: |
-          <script src="assets/boton-notas.js"></script>
           <script src="assets/hojas-anotaciones.js"></script>
 
     chalkboard:

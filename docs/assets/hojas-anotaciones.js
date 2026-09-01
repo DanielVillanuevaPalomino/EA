@@ -31,6 +31,11 @@
   const CLAVE_ACTIVA = "amawa-hoja-activa";
   // Vitrina de hojas guardadas, aparte por cada presentación (pathname).
   const CLAVE_LIBRERIA = "amawa_hojas::" + location.pathname;
+  // Nombre reservado para el resguardo automático: si dibujas y cierras
+  // la pestaña SIN pulsar "Guardar anotación", sessionStorage se borra
+  // con la pestaña y ese trabajo se perdería. Este resguardo lo copia a
+  // localStorage solo (persiste igual que cualquier hoja con nombre).
+  const NOMBRE_BORRADOR = "◐ Borrador automático";
 
   const ICONO_CARPETA = [
     '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"',
@@ -65,8 +70,9 @@
 
   let deck = null;
   let plugin = null;
-  let botonEl, panelEl, listaEl, inputEl;
+  let botonEl, panelEl, listaEl, inputEl, switchEl;
   let ultimoGuardado = null; // JSON de referencia: así sabemos si hay cambios sin guardar
+  let viendoOriginal = false;
 
   function esperarReveal(cb) {
     if (window.Reveal && typeof window.Reveal.isReady === "function") {
@@ -103,7 +109,7 @@
   }
 
   function nombreSugerido() {
-    const n = Object.keys(leerLibreria()).length + 1;
+    const n = Object.keys(leerLibreria()).filter((k) => k !== NOMBRE_BORRADOR).length + 1;
     return "Sesión " + String(n).padStart(2, "0");
   }
 
@@ -127,6 +133,9 @@
 
     const json = plugin.getData(); // getData() ya limpia entradas vacías (plugin.js:642)
     lib[nombre] = { json, fecha: new Date().toISOString() };
+    // Ya quedó a salvo con nombre propio: el resguardo automático de este
+    // mismo contenido sobra y solo ensuciaría la lista.
+    if (nombre !== NOMBRE_BORRADOR) delete lib[NOMBRE_BORRADOR];
     if (!escribirLibreria(lib)) return;
 
     marcarActiva(nombre);
@@ -187,6 +196,44 @@
     if (botonEl) botonEl.classList.toggle("sucio", !!sucio);
   }
 
+  /* ------------------- Ver diapositiva original ------------------- */
+  // Oculta los trazos SIN borrarlos (storage queda intacto): apaga la
+  // opacidad del lienzo de notas y, si la pizarra opaca estuviera
+  // abierta, la cierra por la vía oficial (toggleChalkboard) para que
+  // el estado interno del plugin no se desincronice del DOM.
+  function alternarVistaOriginal(mostrarOriginal) {
+    viendoOriginal = mostrarOriginal;
+
+    const cn = document.getElementById("notescanvas");
+    if (cn) {
+      if (mostrarOriginal && cn.style.pointerEvents === "auto") {
+        plugin.toggleNotesCanvas(); // sale del modo lápiz por la vía oficial
+      }
+      cn.style.opacity = mostrarOriginal ? "0" : "1";
+    }
+
+    const cb = document.getElementById("chalkboard");
+    if (mostrarOriginal && cb && cb.style.visibility === "visible") {
+      plugin.toggleChalkboard();
+    }
+
+    if (switchEl) {
+      switchEl.classList.toggle("activo", !mostrarOriginal);
+      switchEl.setAttribute("aria-checked", String(!mostrarOriginal));
+    }
+    if (botonEl) botonEl.classList.toggle("viendo-original", mostrarOriginal);
+  }
+
+  /* ------------------------ Resguardo automático ------------------------ */
+  function guardarBorrador() {
+    if (!plugin) return;
+    const actual = plugin.getData();
+    if (actual === ultimoGuardado) return; // nada nuevo que resguardar
+    const lib = leerLibreria();
+    lib[NOMBRE_BORRADOR] = { json: actual, fecha: new Date().toISOString(), borrador: true };
+    escribirLibreria(lib);
+  }
+
   /* ------------------------------ UI ------------------------------ */
   function construirUI() {
     botonEl = document.createElement("button");
@@ -207,6 +254,12 @@
       "  <span>Hojas de anotaciones</span>",
       '  <button type="button" class="ha-cerrar" aria-label="Cerrar">&times;</button>',
       "</div>",
+      '<div class="ha-original">',
+      '  <span class="ha-original-texto">Mostrar anotaciones',
+      '    <span class="ha-original-sub">Apagado = ves la diapositiva original, sin borrar nada</span>',
+      "  </span>",
+      '  <button type="button" class="ha-switch activo" role="switch" aria-checked="true" aria-label="Mostrar anotaciones"></button>',
+      "</div>",
       '<div class="ha-guardar">',
       '  <input type="text" placeholder="Nombre de la hoja…" maxlength="80">',
       '  <button type="button" class="ha-btn">Guardar anotación</button>',
@@ -221,6 +274,7 @@
 
     listaEl = panelEl.querySelector(".ha-lista");
     inputEl = panelEl.querySelector('input[type="text"]');
+    switchEl = panelEl.querySelector(".ha-switch");
 
     panelEl.querySelector(".ha-cerrar").addEventListener("click", () => alternarPanel(false));
     panelEl.querySelector(".ha-blanco").addEventListener("click", hojaEnBlanco);
@@ -228,6 +282,7 @@
     inputEl.addEventListener("keydown", (e) => {
       if (e.key === "Enter") guardarComo(inputEl.value);
     });
+    switchEl.addEventListener("click", () => alternarVistaOriginal(!viendoOriginal));
 
     // Cerrar al hacer clic fuera. `e.isTrusted` excluye el clic sintético
     // que "descargar()" dispara sobre su <a> temporal: ese <a> vive fuera
@@ -275,8 +330,15 @@
       const info = document.createElement("div");
       info.className = "ha-info";
       info.innerHTML =
-        '<div class="ha-nombre"></div><div class="ha-fecha"></div>';
-      info.querySelector(".ha-nombre").textContent = nombre;
+        '<div class="ha-nombre"><span class="ha-nombre-texto"></span></div>' +
+        '<div class="ha-fecha"></div>';
+      info.querySelector(".ha-nombre-texto").textContent = nombre;
+      if (hoja.borrador) {
+        const badge = document.createElement("span");
+        badge.className = "ha-badge";
+        badge.textContent = "sin nombre";
+        info.querySelector(".ha-nombre").appendChild(badge);
+      }
       info.querySelector(".ha-fecha").textContent =
         (nombre === activa ? "Cargada ahora · " : "") + fechaLegible(hoja.fecha);
       info.addEventListener("click", () => cargar(nombre));
@@ -330,6 +392,25 @@
 
     construirUI();
 
+    // Si el usuario reactiva el modo lápiz por el icono nativo (o la tecla
+    // C) mientras estábamos en "ver original", restaurar la vista al vuelo
+    // en vez de esperar al chequeo periódico de más abajo.
+    document.addEventListener(
+      "click",
+      (e) => {
+        if (!viendoOriginal) return;
+        if (e.target.closest('span[title="Toggle Notes Canvas (c)"]')) {
+          setTimeout(() => alternarVistaOriginal(false), 0);
+        }
+      },
+      true
+    );
+    document.addEventListener("keydown", (e) => {
+      if (viendoOriginal && (e.key === "c" || e.key === "C")) {
+        setTimeout(() => alternarVistaOriginal(false), 0);
+      }
+    });
+
     // Punto de referencia: lo que ya está guardado (la hoja recién cargada,
     // o "vacío" si es una hoja en blanco). Así el punto rojo compara contra
     // algo real en vez de activarse una sola vez y quedarse pegado.
@@ -341,9 +422,29 @@
     // Cada 2s comparamos el dibujo actual contra la última versión guardada.
     // Barato (JSON.stringify ya está cacheado por getData) y siempre correcto,
     // a diferencia de intentar adivinar "¿acaba de dibujar algo?" por evento.
+    // Cada 4 vueltas (≈8s) además resguardamos en localStorage: si cierras
+    // la pestaña sin pulsar "Guardar anotación", sessionStorage se borra
+    // con ella y ese trabajo se perdería sin este resguardo.
+    let vueltas = 0;
     setInterval(() => {
+      // Si estaba en "ver original" (trazos ocultos) y el usuario volvió a
+      // entrar en modo lápiz con el icono nativo, restaurar la vista: si no,
+      // dibujaría sin ver nada (el icono nativo no sabe de nuestro switch).
+      if (viendoOriginal) {
+        const cn = document.getElementById("notescanvas");
+        if (cn && cn.style.pointerEvents === "auto") alternarVistaOriginal(false);
+      }
+
       const actual = plugin.getData();
-      marcarSucio(actual !== ultimoGuardado);
+      const hayCambios = actual !== ultimoGuardado;
+      marcarSucio(hayCambios);
+      vueltas++;
+      if (hayCambios && vueltas % 4 === 0) guardarBorrador();
     }, 2000);
+
+    // Último resguardo, por si cierras/recargas antes de que pase el
+    // intervalo de arriba. Debe ser síncrono: por eso escribirLibreria usa
+    // localStorage (no hay forma fiable de esperar algo asíncrono aquí).
+    window.addEventListener("beforeunload", guardarBorrador);
   });
 })();
