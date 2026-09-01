@@ -22,6 +22,15 @@
   overflow: hidden;
 }
 
+/* El interruptor "Mostrar anotaciones" de hojas-anotaciones.js pone esta
+   clase aquí también: las imágenes se consideran parte de la anotación,
+   así que se ocultan/muestran junto con los trazos. display:none (no
+   opacity) para que además queden fuera de la interacción sin depender
+   de ganarle la partida en especificidad a .imagen-item's pointer-events. */
+.imagenes-capa.oculta {
+  display: none;
+}
+
 .imagen-item {
   position: absolute;
   pointer-events: auto;

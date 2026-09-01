@@ -64,9 +64,9 @@ actualiza (te pregunta antes de reemplazarla).
 **5 · Ver la diapositiva original (sin anotaciones)**
 
 Arriba del panel hay un interruptor **"Mostrar anotaciones"**. Apágalo para
-ver la diapositiva tal como está en el `.qmd`, sin ningún trazo — nada se
-borra, es solo una vista. Vuelve a encenderlo (o toca el lápiz para seguir
-dibujando) y tus anotaciones reaparecen exactamente igual.
+ver la diapositiva tal como está en el `.qmd`, sin ningún trazo **ni
+imagen** — nada se borra, es solo una vista. Vuelve a encenderlo (o toca
+el lápiz para seguir dibujando) y todo reaparece exactamente igual.
 
 **6 · Empezar de cero**
 
