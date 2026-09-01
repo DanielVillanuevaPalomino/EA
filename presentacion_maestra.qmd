@@ -1,0 +1,90 @@
+---
+title: "Estadística Aplicada"
+subtitle: "Sesión 01 · Presentación maestra"
+author: "Daniel Palomino"
+institute: "AMAWA — UTEC"
+date: today
+date-format: "D [de] MMMM [de] YYYY"
+lang: es
+
+format:
+  revealjs:
+    theme: default
+    slide-number: c/t
+    progress: true
+    center: false
+    hash: true
+
+    # Mantener FIJOS estos dos valores entre maestra y anotada:
+    # el JSON de chalkboard guarda width/height y escala los trazos
+    # a partir de ellos. Si cambian, los dibujos se desalinean.
+    width: 1050
+    height: 700
+
+    # OBLIGATORIO false. El plugin chalkboard declara
+    # `self-contained: false` en su plugin.yml y carga el JSON por
+    # XMLHttpRequest en tiempo de ejecución: con embed-resources: true
+    # las anotaciones NO cargan.
+    embed-resources: false
+
+    include-in-header:
+      - text: |
+          <link rel="stylesheet" href="assets/boton-notas.css">
+    include-after-body:
+      - text: |
+          <script src="assets/boton-notas.js"></script>
+
+    # --- CHALKBOARD:INICIO (bloque gestionado por scripts/generar_anotada.py) ---
+    chalkboard:
+      theme: whiteboard
+      boardmarker-width: 3
+      chalk-width: 6
+      transition: 500
+      read-only: false
+      buttons: true
+    # --- CHALKBOARD:FIN ---
+---
+
+## Distribución normal {#normal}
+
+La densidad de una variable $X \sim \mathcal{N}(\mu, \sigma^2)$ es
+
+$$f(x) = \frac{1}{\sigma\sqrt{2\pi}}\; e^{-\frac{1}{2}\left(\frac{x-\mu}{\sigma}\right)^2}$$
+
+::: {.incremental}
+- $\mu$ desplaza la curva sobre el eje horizontal.
+- $\sigma$ controla la dispersión: mayor $\sigma$, campana más ancha.
+- El área total bajo la curva siempre vale $1$.
+:::
+
+. . .
+
+**En clase:** pulsa `C` y traza sobre la curva dónde cae el 68 % central.
+
+## Teorema del límite central {#tlc}
+
+Si $X_1, \dots, X_n$ son i.i.d. con media $\mu$ y varianza $\sigma^2 < \infty$:
+
+$$\frac{\bar{X}_n - \mu}{\sigma/\sqrt{n}} \;\xrightarrow{d}\; \mathcal{N}(0,1)$$
+
+:::: {.columns}
+
+::: {.column width="50%"}
+### Lo que sí dice
+
+- Vale **sea cual sea** la distribución original.
+- La aproximación mejora al crecer $n$.
+:::
+
+::: {.column width="50%"}
+### Lo que no dice
+
+- No afirma que los datos se vuelvan normales.
+- Con $n$ pequeño y colas pesadas, falla.
+:::
+
+::::
+
+. . .
+
+**En clase:** anotar aquí el contraejemplo con la distribución de Cauchy.

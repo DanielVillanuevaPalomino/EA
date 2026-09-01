@@ -1,0 +1,18 @@
+# ============================================================
+#  Proyecto Quarto — Presentaciones con anotaciones Chalkboard
+#  Publicación: GitHub Pages sirviendo la carpeta /docs de main
+# ============================================================
+project:
+  type: default
+  output-dir: docs
+  render:
+    - "*.qmd"
+  # Quarto ya copia automáticamente el archivo declarado en
+  # `chalkboard.src`, pero declaramos las carpetas de forma
+  # explícita para que TODOS los JSON y los assets del botón
+  # lleguen a /docs aunque cambien de nombre entre sesiones.
+  resources:
+    - anotaciones/
+    - assets/
+
+lang: es

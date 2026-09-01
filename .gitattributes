@@ -1,0 +1,6 @@
+# Normaliza finales de línea dentro del repositorio (LF), sin tocar
+# tu copia de trabajo en Windows. Evita diffs fantasma entre máquinas.
+* text=auto
+
+# docs/ es salida generada por Quarto: GitHub la colapsa en los diffs.
+docs/** linguist-generated=true

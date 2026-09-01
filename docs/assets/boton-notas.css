@@ -1,0 +1,163 @@
+/* ============================================================
+   Botón flotante de anotaciones — Chalkboard / Reveal.js / Quarto
+   ------------------------------------------------------------
+   Se inyecta en <head> vía `include-in-header` y lo construye
+   assets/boton-notas.js. No depende de Font Awesome ni de ningún
+   CDN: el icono es un SVG en línea (funciona offline y en Pages).
+   ============================================================ */
+
+:root {
+  --bn-tam: 54px;                              /* diámetro del botón      */
+  --bn-margen: 26px;                           /* separación al borde     */
+  --bn-fondo: rgba(255, 255, 255, 0.82);
+  --bn-borde: rgba(15, 23, 42, 0.10);
+  --bn-texto: #1f2937;
+  --bn-acento: #2563eb;                        /* estado ACTIVO           */
+  --bn-acento-suave: rgba(37, 99, 235, 0.12);
+  --bn-punto: #f59e0b;                         /* "este slide tiene notas" */
+  --bn-sombra: 0 8px 26px rgba(15, 23, 42, 0.16), 0 1px 3px rgba(15, 23, 42, 0.10);
+  --bn-sombra-activo: 0 8px 30px rgba(37, 99, 235, 0.34);
+}
+
+/* ---------- Contenedor / pastilla ---------- */
+.boton-notas {
+  position: fixed;
+  top: 50%;
+  right: var(--bn-margen);
+  transform: translateY(-50%);
+  z-index: 60;                     /* por encima de #notescanvas (24)
+                                      y de #chalkboard (26)              */
+
+  display: flex;
+  flex-direction: row-reverse;     /* icono a la derecha, texto a la izq. */
+  align-items: center;
+
+  height: var(--bn-tam);
+  padding: 0;
+  margin: 0;
+
+  font-family: inherit;
+  font-size: 15px;
+  line-height: 1;
+  color: var(--bn-texto);
+
+  background: var(--bn-fondo);
+  border: 1px solid var(--bn-borde);
+  border-radius: 999px;
+  box-shadow: var(--bn-sombra);
+  -webkit-backdrop-filter: blur(14px) saturate(1.6);
+  backdrop-filter: blur(14px) saturate(1.6);
+
+  cursor: pointer;
+  overflow: hidden;
+  transition: box-shadow .28s ease, background-color .28s ease,
+              color .28s ease, transform .28s ease, opacity .28s ease;
+}
+
+.boton-notas:hover  { box-shadow: 0 10px 32px rgba(15,23,42,.22); }
+.boton-notas:active { transform: translateY(-50%) scale(.95); }
+
+.boton-notas:focus-visible {
+  outline: 3px solid var(--bn-acento);
+  outline-offset: 3px;
+}
+
+/* ---------- Icono ---------- */
+.bn-icono {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 var(--bn-tam);
+  width: var(--bn-tam);
+  height: var(--bn-tam);
+}
+
+.bn-icono svg {
+  width: 23px;
+  height: 23px;
+  transition: transform .3s cubic-bezier(.34,1.56,.64,1);
+}
+
+.boton-notas:hover .bn-icono svg { transform: rotate(-12deg) scale(1.06); }
+
+/* ---------- Etiqueta deslizante ---------- */
+.bn-etiqueta {
+  max-width: 0;
+  padding: 0;
+  opacity: 0;
+  white-space: nowrap;
+  font-weight: 550;
+  letter-spacing: .01em;
+  transition: max-width .34s cubic-bezier(.22,1,.36,1),
+              padding .34s cubic-bezier(.22,1,.36,1),
+              opacity .22s ease;
+}
+
+.boton-notas:hover .bn-etiqueta,
+.boton-notas:focus-visible .bn-etiqueta {
+  max-width: 260px;
+  padding: 0 4px 0 20px;
+  opacity: 1;
+}
+
+/* ---------- Indicador: el slide TIENE anotaciones ---------- */
+.bn-punto {
+  position: absolute;
+  top: 11px;
+  right: 11px;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--bn-punto);
+  box-shadow: 0 0 0 2.5px var(--bn-fondo);
+  opacity: 0;
+  transform: scale(.4);
+  transition: opacity .25s ease, transform .25s cubic-bezier(.34,1.56,.64,1);
+}
+
+.boton-notas.tiene-notas .bn-punto { opacity: 1; transform: scale(1); }
+.boton-notas.activo     .bn-punto  { opacity: 0; }
+
+/* ---------- Estado ACTIVO (anotaciones visibles) ---------- */
+.boton-notas.activo {
+  background: var(--bn-acento);
+  border-color: transparent;
+  color: #fff;
+  box-shadow: var(--bn-sombra-activo);
+}
+
+/* ---------- Estado sin anotaciones en este slide ---------- */
+.boton-notas.sin-notas {
+  opacity: .28;
+  cursor: default;
+  box-shadow: none;
+}
+.boton-notas.sin-notas:hover .bn-etiqueta { max-width: 0; padding: 0; opacity: 0; }
+.boton-notas.sin-notas:hover .bn-icono svg { transform: none; }
+
+/* Ocultar por completo en slides sin notas (activable desde el JS) */
+.boton-notas.oculto { opacity: 0; pointer-events: none; transform: translateY(-50%) scale(.8); }
+
+/* ---------- Pantallas pequeñas: solo icono ---------- */
+@media (max-width: 700px) {
+  :root { --bn-tam: 48px; --bn-margen: 14px; }
+  .boton-notas:hover .bn-etiqueta { max-width: 0; padding: 0; opacity: 0; }
+}
+
+/* ---------- Tema oscuro de Reveal ---------- */
+.reveal.has-dark-background ~ .boton-notas,
+body.quarto-dark .boton-notas {
+  --bn-fondo: rgba(30, 41, 59, 0.86);
+  --bn-borde: rgba(255, 255, 255, 0.14);
+  --bn-texto: #e5e7eb;
+}
+
+/* ---------- Nunca aparecer en PDF / impresión ---------- */
+@media print { .boton-notas { display: none !important; } }
+.print-pdf .boton-notas,
+html.print-pdf .boton-notas { display: none !important; }
+
+/* ---------- Accesibilidad: sin animaciones ---------- */
+@media (prefers-reduced-motion: reduce) {
+  .boton-notas, .bn-etiqueta, .bn-punto, .bn-icono svg { transition: none !important; }
+}

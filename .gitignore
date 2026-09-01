@@ -1,0 +1,49 @@
+# ============================================================
+#  .gitignore — proyecto Quarto + Chalkboard + GitHub Pages
+# ============================================================
+
+# --- Caché interna de Quarto (nunca se publica) ---
+/.quarto/
+
+# --- Renders sueltos hechos FUERA del proyecto ---
+# OJO: la barra inicial ancla el patrón a la raíz del repo.
+# Sin ella (`*_files/`) ignorarías docs/presentacion_*_files/,
+# que contiene reveal.js, MathJax y el plugin chalkboard.
+# Eso rompería GitHub Pages: la presentación saldría en blanco.
+/*_files/
+/*.html
+*.rmarkdown
+
+# --- Bandeja de descargas crudas (JSON sin clasificar) ---
+# El script mueve el JSON bueno a anotaciones/ con nombre limpio.
+/descargas/
+
+# --- Python ---
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# --- Sistema operativo / OneDrive ---
+.DS_Store
+Thumbs.db
+desktop.ini
+*.tmp
+
+# ============================================================
+#  NO IGNORAR (crítico para que Pages funcione):
+#    docs/            -> es lo que GitHub Pages publica
+#    docs/.nojekyll   -> evita que Jekyll borre carpetas con "_"
+#    anotaciones/*.json -> es la fuente de las notas manuscritas
+# ============================================================
+!docs/
+!docs/**
+!anotaciones/*.json
+
+**/*.quarto_ipynb
+
+# --- RStudio ---
+.Rhistory
+.RData
+.Ruserdata
+.Rproj.user/
