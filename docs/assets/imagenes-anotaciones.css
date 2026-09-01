@@ -1,0 +1,118 @@
+/* ============================================================
+   Imágenes sobre la pizarra — Chalkboard / Reveal.js / Quarto
+   ------------------------------------------------------------
+   Capa propia para pegar (Ctrl+V) o subir imágenes sobre la
+   diapositiva actual. Chalkboard no tiene esto de forma nativa:
+   es un sistema aparte, construido por imagenes-anotaciones.js.
+   ============================================================ */
+
+:root {
+  --ia-acento: #0d9488;
+  --ia-peligro: #dc2626;
+}
+
+/* Capa que cubre el viewport. Ella misma no capta clics (así no
+   tapa al lienzo de dibujo ni a las diapositivas); cada imagen
+   dentro sí es interactiva. */
+.imagenes-capa {
+  position: fixed;
+  inset: 0;
+  z-index: 22;               /* debajo de #notescanvas (24) y #chalkboard (26) */
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.imagen-item {
+  position: absolute;
+  pointer-events: auto;
+  cursor: grab;
+  outline: 2px solid transparent;
+  outline-offset: 3px;
+  border-radius: 2px;
+  transition: outline-color .15s ease;
+}
+.imagen-item:active { cursor: grabbing; }
+.imagen-item.seleccionada { outline-color: var(--ia-acento); }
+
+.imagen-item img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: fill;
+  -webkit-user-drag: none;
+  user-select: none;
+  pointer-events: none;      /* los gestos los captura .imagen-item */
+}
+
+/* Botón eliminar: visible solo si la imagen está seleccionada o el
+   puntero está encima (así no se ve encima en capturas/exportación). */
+.imagen-borrar {
+  position: absolute;
+  top: -11px;
+  right: -11px;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: 50%;
+  background: var(--ia-peligro);
+  color: #fff;
+  cursor: pointer;
+  opacity: 0;
+  transform: scale(.7);
+  transition: opacity .15s ease, transform .15s ease;
+  box-shadow: 0 2px 8px rgba(0,0,0,.25);
+}
+.imagen-item.seleccionada .imagen-borrar,
+.imagen-item:hover .imagen-borrar {
+  opacity: 1;
+  transform: scale(1);
+}
+.imagen-borrar svg { width: 13px; height: 13px; }
+
+/* Asa de redimensionar: esquina inferior derecha, mantiene proporción. */
+.imagen-asa {
+  position: absolute;
+  right: -7px;
+  bottom: -7px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #fff;
+  border: 2.5px solid var(--ia-acento);
+  cursor: nwse-resize;
+  opacity: 0;
+  transition: opacity .15s ease;
+}
+.imagen-item.seleccionada .imagen-asa,
+.imagen-item:hover .imagen-asa {
+  opacity: 1;
+}
+
+/* Zona de "soltar aquí" al arrastrar un archivo sobre la ventana */
+.imagenes-soltar {
+  position: fixed;
+  inset: 0;
+  z-index: 62;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  background: rgba(13, 148, 136, 0.12);
+  border: 3px dashed var(--ia-acento);
+  pointer-events: none;
+}
+.imagenes-soltar.activa { display: flex; }
+.imagenes-soltar span {
+  padding: 14px 22px;
+  border-radius: 12px;
+  background: rgba(255,255,255,0.92);
+  color: #0f172a;
+  font-size: 15px;
+  font-weight: 600;
+  box-shadow: 0 8px 26px rgba(15,23,42,.2);
+}
+
+@media print { .imagenes-capa, .imagenes-soltar { display: none !important; } }
+.print-pdf .imagenes-capa, html.print-pdf .imagenes-capa { display: none !important; }

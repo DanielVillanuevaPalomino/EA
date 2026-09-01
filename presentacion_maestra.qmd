@@ -30,9 +30,11 @@ format:
     include-in-header:
       - text: |
           <link rel="stylesheet" href="assets/hojas-anotaciones.css">
+          <link rel="stylesheet" href="assets/imagenes-anotaciones.css">
     include-after-body:
       - text: |
           <script src="assets/hojas-anotaciones.js"></script>
+          <script src="assets/imagenes-anotaciones.js"></script>
 
     chalkboard:
       theme: whiteboard

@@ -189,6 +189,38 @@
 .ha-switch.activo::before { transform: translateX(17px); }
 .ha-switch:focus-visible { outline: 2px solid var(--ha-acento); outline-offset: 2px; }
 
+/* ---------- Grosor del lápiz ---------- */
+.ha-grosor {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 11px 14px;
+  border-bottom: 1px solid var(--ha-borde);
+  font-size: 13px;
+  color: var(--ha-texto);
+}
+
+.ha-grosor-etiqueta { flex: 0 0 auto; }
+
+.ha-grosor input[type="range"] {
+  flex: 1;
+  accent-color: var(--ha-acento);
+  cursor: pointer;
+}
+
+.ha-grosor-vista {
+  flex: 0 0 34px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.ha-grosor-punto {
+  border-radius: 50%;
+  background: var(--ha-texto);
+  transition: width .1s ease, height .1s ease;
+}
+
 /* ---------- Guardar ---------- */
 .ha-guardar {
   display: flex;

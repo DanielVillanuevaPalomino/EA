@@ -19,7 +19,8 @@ Presentacion_Quarto_GitHub/
 ├── _quarto.yml                    proyecto: output-dir = docs
 ├── presentacion_maestra.qmd       la presentación (única, siempre editable)
 ├── assets/
-│   └── hojas-anotaciones.css/.js  botón "Hojas": guardar, cargar, ver original
+│   ├── hojas-anotaciones.css/.js     botón "Hojas": guardar, cargar, ver original, grosor
+│   └── imagenes-anotaciones.css/.js  pegar/subir imágenes sobre la diapositiva
 ├── docs/                          salida que publica GitHub Pages
 │
 │   --- lo siguiente es un flujo aparte, opcional (ver más abajo) ---
@@ -73,6 +74,34 @@ dibujando) y tus anotaciones reaparecen exactamente igual.
 hoja guardada. A diferencia del interruptor de arriba, esto sí borra —
 pide confirmación antes de hacerlo.
 
+**7 · Grosor del lápiz**
+
+El deslizador **"Grosor"**, en el mismo panel, cambia el trazo al instante
+— ideal para anotaciones finas y precisas. Se recuerda entre sesiones (es
+una preferencia del navegador, no de una hoja en particular).
+
+**8 · Agregar imágenes**
+
+**"Agregar imagen"**, arriba del panel, abre el explorador de archivos.
+También puedes **pegar con Ctrl+V** (una captura de pantalla, o algo
+copiado) o **soltar un archivo** sobre la ventana — funciona en cualquier
+momento, sin abrir el panel. Cada imagen se puede:
+
+- **Mover**: arrástrala (con el modo lápiz apagado — mientras dibujas, el
+  lienzo tapa las imágenes, así que primero sal del modo lápiz).
+- **Redimensionar**: arrastra la esquina inferior derecha (mantiene
+  proporción).
+- **Eliminar**: el botón ⓧ que aparece al pasar el mouse, o la tecla
+  `Supr`/`Backspace` con la imagen seleccionada.
+
+Las imágenes son **por diapositiva** (no aparecen en las demás) y viajan
+junto con el dibujo al guardar/cargar una hoja — pero **no** se incluyen en
+la descarga ⬇ de una hoja (esa descarga es JSON puro de Chalkboard, para
+compatibilidad con el flujo opcional de más abajo). Las imágenes tampoco
+tienen límite de tamaño estricto, pero se redimensionan automáticamente a
+un máximo de 1600px de lado antes de guardarse, para no llenar el
+almacenamiento del navegador con fotos pesadas.
+
 ### Si dibujas y cierras sin guardar
 
 No pasa nada: cada ~8 segundos (y también justo antes de cerrar la pestaña)
@@ -108,7 +137,7 @@ nombre empieza por `_`. Publicar solo hace falta cuando cambias el
 guardas con el botón de la carpeta no requieren volver a publicar, viven en
 tu navegador.
 
-## Nueve cosas que conviene saber
+## Once cosas que conviene saber
 
 **1 · `embed-resources` tiene que ser `false`.**
 El plugin declara `self-contained: false` en su `plugin.yml`. Con
@@ -160,6 +189,29 @@ nativos para "entrar en modo anotación" confundía, así que
 opaca (`span[title="Toggle Chalkboard (b)"]`) y deja solo el de dibujar
 sobre el slide. La tecla `B` sigue funcionando si alguna vez la necesitas;
 solo el botón desaparece.
+
+**10 · El zoom de Reveal.js (Alt+clic) NO sirve para dibujar con precisión.**
+Lo probamos a fondo: al hacer zoom, el navegador reporta la posición del
+clic en coordenadas de PANTALLA, no las de la diapositiva ampliada — un
+trazo hecho con zoom activado queda en el lugar donde hiciste clic en la
+pantalla, no sobre lo que veías ampliado. Por eso no hay ningún botón de
+zoom en este proyecto: para anotaciones finas, usa el deslizador de
+**grosor** en su lugar.
+
+**11 · `getData()` del plugin siempre reescribe `sessionStorage`, incluso
+solo para leer.** Es un efecto secundario documentado en el propio
+`plugin.js` (`getData` → `updateStorage` → `sessionStorage.setItem`), pero
+fácil de pasar por alto: nuestro chequeo periódico de "¿hay cambios sin
+guardar?" llama a `getData()`, así que si esa llamada ocurriera justo
+después de que "Cargar una hoja" escribe la hoja elegida — pero antes de
+que la página realmente recargue — pisaría lo recién escrito con el dibujo
+viejo de la página. `recargarConHoja()` en `hojas-anotaciones.js` se
+protege con una bandera (`recargando`) que pausa ese chequeo, más un
+margen de ~1.1s antes de escribir el valor final (más que el autoguardado
+de ~1s del propio Chalkboard), para que cualquier escritura vieja ya
+pendiente se resuelva antes de que la nuestra sea la última palabra. Si
+alguna vez tocas ese código, cualquier llamada nueva a `getData()`
+—directa o via `firma()`— necesita ese mismo resguardo.
 
 ## Flujo opcional: publicar un snapshot de solo lectura
 
